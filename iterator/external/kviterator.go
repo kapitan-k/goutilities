@@ -26,7 +26,7 @@ func ExternalKVIteratorCreate(requester KVIteratorRequester, fnFreeData FnFreeDa
 	return
 }
 
-func (self *ExternalKVIterator) Error() error {
+func (self *ExternalKVIterator) Err() error {
 	return self.err
 }
 

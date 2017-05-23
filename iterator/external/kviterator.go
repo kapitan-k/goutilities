@@ -1,8 +1,7 @@
 package external
 
 import (
-	//. "github.com/kapitan-k/goutilities/data"
-	. "goutilities/data"
+	. "github.com/kapitan-k/goutilities/data"
 )
 
 type FnExternalExternalKVIteratorNext func(data []byte, pos int) (k, v []byte, posNew int)

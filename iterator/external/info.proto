@@ -10,7 +10,7 @@ message ExternalIteratorInfo {
 enum ExternalIteratorRequestInfoType {
 	SeekToFirst 			= 1;
 	SeekToLast 				= 2;
-	SeekTo 					= 3;
+	Seek 					= 3;
 	SeekForPrev				= 4;
 	Next 					= 5;
 	Prev 					= 6;

@@ -42,8 +42,8 @@ func (self *ExternalKVIterator) SeekToLast(k []byte) {
 	self.requestInternal(self.requester.SeekToLast, k)
 }
 
-func (self *ExternalKVIterator) SeekTo(k []byte) {
-	self.requestInternal(self.requester.SeekTo, k)
+func (self *ExternalKVIterator) Seek(k []byte) {
+	self.requestInternal(self.requester.Seek, k)
 }
 
 func (self *ExternalKVIterator) SeekForPrev(k []byte) {

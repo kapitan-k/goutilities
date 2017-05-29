@@ -7,17 +7,17 @@ import (
 
 func UintptrToByteSlice(ptr uintptr, sz uint64) []byte {
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(ptr),
 		Len:  int(sz),
 		Cap:  int(sz),
-		Data: uintptr(ptr),
 	}))
 }
 
 func UnsafeToByteSlice(ptr unsafe.Pointer, sz uint64) []byte {
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(ptr),
 		Len:  int(sz),
 		Cap:  int(sz),
-		Data: uintptr(ptr),
 	}))
 }
 
@@ -31,8 +31,8 @@ func ByteSliceToUnsafe(data []byte) unsafe.Pointer {
 
 func UnsafeToUint64Slice(ptr unsafe.Pointer, sz uint64) []uint64 {
 	return *(*[]uint64)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(ptr),
 		Len:  int(sz),
 		Cap:  int(sz),
-		Data: uintptr(ptr),
 	}))
 }

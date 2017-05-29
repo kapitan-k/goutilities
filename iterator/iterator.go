@@ -7,10 +7,18 @@ const (
 	IteratorDirection_Desc = IteratorDirection(2)
 )
 
+type IteratorValidator interface {
+	Valid() bool
+}
+
 type IteratorBase interface {
 	Err() error
-	Valid() bool
+	Close()
+}
+
+type IteratorSeeker interface {
 	SeekToFirst(k []byte)
 	SeekToLast(k []byte)
-	Close()
+	Seek(k []byte)
+	SeekForPrev(k []byte)
 }

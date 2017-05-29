@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package iterator;
+
+import "gogo/gogoproto/gogo.proto";
+
+
+message SingleKVDiff {
+	int64 diffType = 1 [(gogoproto.casttype) = "int"];
+	uint64 idx = 2;
+
+	bytes keyExpected = 3;
+	bytes valueExpected = 4;
+
+	bytes keyActual = 5;
+	bytes valueActual = 6;
+}
+
+
+message SingleKVTableDiffs {
+	string tableName = 1;
+	repeated SingleKVDiff kVDiffs = 2 [(gogoproto.nullable) = false];
+}
+
+
+message Diff {
+	string path = 1;
+	repeated SingleKVTableDiffs tableDiffs = 2 [(gogoproto.nullable) = false];
+}

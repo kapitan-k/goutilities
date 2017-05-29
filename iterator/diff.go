@@ -7,15 +7,69 @@ const (
 	DiffTypeDifferValue      = 4
 )
 
-// Diff for a single Key Value Tuple
-type SingleKVDiff struct {
-	DiffType      int
-	Idx           uint64
-	KeyExpected   []byte
-	ValueExpected []byte
+// SingleKVDiff is a Diff for a single Key Value Tuple
 
-	KeyActual   []byte
-	ValueActual []byte
+// SingleKVTableDiffs = All the diffs for a single table/set/column family
+
+// Diff = All the diffs between the DB in Path and the expected DB
+
+type DiffIteratorProvider interface {
+	DiffIteratorsAndNames() (iters []KVIterator, names []string)
+}
+
+func DiffDBs(dpExpect DiffIteratorProvider, dpActuals []DiffIteratorProvider, singleKVDiffsLimit uint64) (diffs []Diff, err error) {
+	if len(dpActuals) == 0 {
+		panic("len(dpActuals) == 0")
+	}
+
+	itersExpect, namesExpect := dpExpect.DiffIteratorsAndNames()
+	l := len(itersExpect)
+	if l != len(namesExpect) {
+		panic("len(itersExpect) != len(namesExpect)")
+	}
+
+	for _, dpActual := range dpActuals {
+		itersActual, namesActual := dpActual.DiffIteratorsAndNames()
+		if len(itersActual) != len(namesActual) {
+			panic("len(itersActual) != len(namesActual)")
+		}
+		if len(itersActual) != l {
+			panic("len(itersActual) != len(itersExpect)")
+		}
+	}
+
+	diffs = make([]Diff, len(dpActuals))
+	for i, dpActual := range dpActuals {
+		var tDiffs []SingleKVTableDiffs
+		itersActual, namesActual := dpActual.DiffIteratorsAndNames()
+		tDiffs, err = DiffKVIteratorsTotal(itersExpect, itersActual, namesActual, singleKVDiffsLimit)
+		if err != nil {
+			return
+		}
+
+		diffs[i].TableDiffs = tDiffs
+	}
+
+	return
+}
+
+func DiffKVIteratorsTotal(itersExpect, itersActual []KVIterator, tableNames []string, limit uint64) (tDiffs []SingleKVTableDiffs, err error) {
+	tDiffs = make([]SingleKVTableDiffs, len(itersActual))
+	for i, iterExpect := range itersExpect {
+		var kvDiffs []SingleKVDiff
+		iterActual := itersActual[i]
+		kvDiffs, err = DiffKVIterators(iterExpect, iterActual, limit)
+		if err != nil {
+			return
+		}
+
+		tDiffs[i] = SingleKVTableDiffs{
+			TableName: tableNames[i],
+			KVDiffs:   kvDiffs,
+		}
+	}
+
+	return
 }
 
 func DiffKVIterators(iterExpect, iterActual KVIterator, limit uint64) (diffs []SingleKVDiff, err error) {

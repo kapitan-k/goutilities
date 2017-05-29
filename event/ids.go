@@ -1,7 +1,7 @@
 package event
 
 import (
-	. "goutilities"
+	. "github.com/kapitan-k/goutilities"
 	"unsafe"
 )
 

@@ -36,3 +36,11 @@ func UnsafeToUint64Slice(ptr unsafe.Pointer, sz uint64) []uint64 {
 		Cap:  int(sz),
 	}))
 }
+
+func UnsafeToInt64Slice(ptr unsafe.Pointer, sz uint64) []int64 {
+	return *(*[]int64)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(ptr),
+		Len:  int(sz),
+		Cap:  int(sz),
+	}))
+}

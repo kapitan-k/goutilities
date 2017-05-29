@@ -2,7 +2,6 @@ package event
 
 import (
 	. "github.com/kapitan-k/goutilities/data/binary"
-	. "goutilities/data/binary"
 	"unsafe"
 )
 

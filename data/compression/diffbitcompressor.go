@@ -24,7 +24,7 @@ func DiffBitUint64CompressorByteSize(inNew, inOld []uint64) (size uint64) {
 	return Uint64BitsetByteSizeNeeded(l) + DiffBitUint64PlainDataDiffByteSize(inNew, inOld)
 }
 
-func DiffBitUint64CompressorUncompressTo(tgt []uint64, bs Uint64Bitset, inSet, inOld []uint64) (cntDiff uint64) {
+func DiffBitUint64CompressorDecompressTo(tgt []uint64, bs Uint64Bitset, inSet, inOld []uint64) (cntDiff uint64) {
 	for i, o := range inOld {
 		if bs.CheckIsBitSet(uint64(i)) {
 			tgt[i] = inSet[cntDiff]

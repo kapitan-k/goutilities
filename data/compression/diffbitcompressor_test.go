@@ -31,7 +31,7 @@ func TestDiff(t *testing.T) {
 	log.Println(tgt)
 	log.Println("bs", bs)
 
-	cntDiffUncomp := DiffBitUint64CompressorUncompressTo(tgtUncomp, bs, tgt, inOld)
+	cntDiffUncomp := DiffBitUint64CompressorDecompressTo(tgtUncomp, bs, tgt, inOld)
 	log.Println("tgtUncomp", tgtUncomp)
 	require.Equal(t, 2, int(cntDiffUncomp))
 }

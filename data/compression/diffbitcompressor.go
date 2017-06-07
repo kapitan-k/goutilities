@@ -1,8 +1,8 @@
 package math
 
 import (
-	. "github.com/kapitan-k/goutilities"
 	. "github.com/kapitan-k/goutilities/bitsnbytes"
+	. "github.com/kapitan-k/goutilities/unsafe"
 	"unsafe"
 )
 

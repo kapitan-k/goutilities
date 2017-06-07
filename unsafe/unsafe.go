@@ -1,4 +1,4 @@
-package goutilities
+package unsafe
 
 import (
 	"reflect"

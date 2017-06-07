@@ -1,7 +1,7 @@
 package binary
 
 import (
-	. "github.com/kapitan-k/goutilities"
+	. "github.com/kapitan-k/goutilities/unsafe"
 	"unsafe"
 )
 
@@ -26,6 +26,9 @@ func (self FixedPrefixSizeBuffer) SetCnt(cnt uint64) {
 }
 
 func (self FixedPrefixSizeBuffer) ElemSize() uint64 {
+	if self.Cnt() == 0 {
+		return 0
+	}
 	return uint64(uint64(len(self)-ArrayLenByteSz) / self.Cnt())
 }
 

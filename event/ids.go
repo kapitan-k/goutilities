@@ -1,7 +1,7 @@
 package event
 
 import (
-	. "github.com/kapitan-k/goutilities"
+	. "github.com/kapitan-k/goutilities/unsafe"
 	"unsafe"
 )
 

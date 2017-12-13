@@ -1,16 +1,22 @@
 package event
 
+type FnBaseEventDataToTopicEvent func(bed *BaseEventData) (te TopicEvent)
+type FnDataToTopicEvent func(data []byte) (te TopicEvent)
+type FnDataToTopicEvents func(data []byte) (tes []TopicEvent)
+
 type Event interface {
-	TopicID() TopicID
 	EventID() EventID
 	Time() int64
+	EventType() uint64
 }
 
-type IteratedEvent interface {
-	FromKV(k, v []byte) (topicID TopicID, eventID []byte, kRet, vRet []byte)
+type TopicEvent interface {
+	Event
+	TopicID() TopicID
+	CopyTo(other TopicEvent)
 }
 
-type EventBufferIterator interface {
-	NextEvent() (topicID TopicID, k, v []byte)
-	Reset()
+type FullDataTopicEvent interface {
+	TopicEvent
+	Data() []byte
 }

@@ -6,10 +6,10 @@ import (
 	"unsafe"
 )
 
-//
-// Used to compress very similar sets of uint64 data somewhat efficiently
-//
+// DiffBitCompression is used to compress very similar sets of uint64 data somewhat efficiently.
 
+// DiffBitUint64PlainDataDiffByteSize returns the byte size needed to compress
+// the both data points inNew and inOld.
 func DiffBitUint64PlainDataDiffByteSize(inNew, inOld []uint64) (size uint64) {
 	for i, n := range inNew {
 		if n != inOld[i] {
@@ -54,26 +54,32 @@ func DiffBitUint64CompressorCompressFromTo(tgt []uint64, bs Uint64Bitset, inNew,
 	return
 }
 
+// Uint64Bitset implements a bitset represented as []uint64.
 type Uint64Bitset []uint64
 
+// SetBit sets a bit at the total position pos.
 func (self Uint64Bitset) SetBit(pos uint64) {
 	Uint64BitsetSetBit(self, pos)
 }
 
+// CheckIsBitSet checks whether a bit is set at the position pos.
 func (self Uint64Bitset) CheckIsBitSet(pos uint64) bool {
 	return Uint64BitsetCheckIsBitSet(self, pos)
 }
 
+// Uint64BitsetSetBit sets a bit at the position pos.
 func Uint64BitsetSetBit(bs Uint64Bitset, pos uint64) {
 	bs[pos/64] |= 1 << (pos % 64)
 }
 
+// Uint64BitsetCheckIsBitSet tests whether a bit is set at the position pos.
 func Uint64BitsetCheckIsBitSet(bs Uint64Bitset, pos uint64) bool {
 	d := pos % 64
 	v := pos / 64
 	return CHECK_IS_BIT(bs[v], d)
 }
 
+// Uint64BitsetCntNeeded returns the width in multiple (cnt) of 64 bits needed.
 func Uint64BitsetCntNeeded(cntElems uint64) (cnt uint64) {
 	d := cntElems % 64
 	if d != 0 {

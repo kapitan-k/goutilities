@@ -1,15 +1,10 @@
 package event
 
 import (
+	. "github.com/kapitan-k/goutilities/data"
 	. "github.com/kapitan-k/goutilities/unsafe"
 	"unsafe"
 )
-
-const EventIDByteSz = 8
-const TopicIDByteSz = 8
-
-type EventID uint64
-type TopicID uint64
 
 type EventIDKey [EventIDByteSz]byte
 
@@ -35,9 +30,34 @@ func EventIDsToFixedKeys(eventIDs []EventID) (keys [][]byte) {
 	ptr := uintptr(unsafe.Pointer(&eventIDs[0]))
 
 	for i := range eventIDs {
-		keys[i] = UintptrToByteSlice(ptr, 8)
+		keys[i] = UintptrToSlice(ptr, 8)
 		ptr += EventIDByteSz
 	}
 
+	return
+}
+
+const TopicEventEventKeyByteSz = 16
+
+type TopicEventEventKey struct {
+	TopicID TopicID
+	EventID EventID
+}
+
+func (self *TopicEventEventKey) AsSlice() (data []byte) {
+	return UnsafeToSlice(unsafe.Pointer(self), TopicEventEventKeyByteSz)
+}
+
+func (self *TopicEventEventKey) Slice() (data []byte) {
+	return CopyBuf(UnsafeToSlice(unsafe.Pointer(self), TopicEventEventKeyByteSz))
+}
+
+func (self *TopicEventEventKey) FromSlice(data []byte) {
+	*self = *(*TopicEventEventKey)(unsafe.Pointer(&data[0]))
+}
+
+func TopicEventEventKeyMax(topicID TopicID) (self TopicEventEventKey) {
+	self.TopicID = topicID
+	self.EventID = EventIDMax
 	return
 }

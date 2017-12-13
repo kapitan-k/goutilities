@@ -4,17 +4,6 @@ import (
 	"math/rand"
 )
 
-func RandomDatas(elemSz, cnt uint64) [][]byte {
-	datas := make([][]byte, cnt)
-	for i := range datas {
-		data := make([]byte, elemSz)
-		rand.Read(data)
-		datas[i] = data
-	}
-
-	return datas
-}
-
 func RandomDatasWithRandomElemSizePrefixedMinSize(minSize, cnt uint64) [][]byte {
 	datas := make([][]byte, cnt)
 	for i := range datas {

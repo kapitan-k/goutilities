@@ -10,14 +10,14 @@ func TestTid(t *testing.T) {
 	seqSet := uint64(14)
 	topicSeqSet := uint64(255)
 
-	TidSetTim(&tid, timSet)
-	timGet := TidTim(tid)
+	TidSetTime(&tid, timSet)
+	timGet := TidTime(tid)
 	if timGet != timSet {
 		t.Log("timGet != timSet", timGet, timSet)
 		t.FailNow()
 	}
 
-	timGet = TidTim(tid)
+	timGet = TidTime(tid)
 	if timGet != timSet {
 		t.Log("timGet != timSet", timGet, timSet, TidStr(tid))
 		t.FailNow()
@@ -26,7 +26,7 @@ func TestTid(t *testing.T) {
 	TidSetSeq(&tid, seqSet)
 	TidSetTopicSeq(&tid, topicSeqSet)
 
-	timGet = TidTim(tid)
+	timGet = TidTime(tid)
 	if timGet != timSet {
 		t.Log("timGet != timSet", timGet, timSet, TidStr(tid))
 		t.FailNow()
@@ -44,9 +44,9 @@ func TestTid(t *testing.T) {
 		t.FailNow()
 	}
 
-	TidAddTim(&tid, 55)
+	TidAddTime(&tid, 55)
 
-	timGet = TidTim(tid)
+	timGet = TidTime(tid)
 	if timGet != timSet+55 {
 		t.Log("timGet != timSet", timGet, timSet, TidStr(tid))
 		t.FailNow()
@@ -80,10 +80,10 @@ func TestTid(t *testing.T) {
 		t.FailNow()
 	}
 
-	TidAtomicSetTim(&tid, 987654)
+	TidAtomicSetTime(&tid, 987654)
 	tid = TidAtomic(&tid)
 
-	timGet = TidTim(tid)
+	timGet = TidTime(tid)
 	if timGet != 987654 {
 		t.Log("timGet != timSet", timGet, timSet, TidStr(tid))
 		t.FailNow()

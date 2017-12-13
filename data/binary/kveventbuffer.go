@@ -21,6 +21,7 @@ type KVEventBufferHeader struct {
 
 const EventBufferBaseByteSz = ArrayLenByteSz + KVEventBufferHeaderByteSz + ArrayLenByteSz + ArrayLenPrefixedBufferBaseByteSz
 
+// KVEventBuffer is used to store Key Value data in one single byte slice.
 // Binary Representation:
 // ArrayLenByteSize for length of offset data
 // offset data
@@ -42,7 +43,7 @@ func (self KVEventBuffer) KVEventBufferHeader() *KVEventBufferHeader {
 }
 
 func (self KVEventBuffer) OffsetData() []byte {
-	return UnsafeToByteSlice(unsafe.Pointer(&self[ArrayLenByteSz]), uint64(GetArrayLenAt(self, 0)))
+	return UnsafeToSlice(unsafe.Pointer(&self[ArrayLenByteSz]), uint64(GetArrayLenAt(self, 0)))
 }
 
 func (self KVEventBuffer) OffsetDataSize() uint64 {
@@ -61,6 +62,10 @@ func (self KVEventBuffer) SetCnt(cnt uint64) {
 	SetArrayLenAt(self, ArrayLenByteSz+self.OffsetDataSize()+KVEventBufferHeaderByteSz, uint32(cnt))
 }
 
+func (self *KVEventBuffer) FromHolder(h *KVEventBufferHolder, bufferBeginPad uint64) {
+	*self = KVEventBufferHolderToEventBuffer(h, bufferBeginPad)
+}
+
 func KVEventBufferHeaderToFlat(data []byte, self *KVEventBufferHeader) (l uint64) {
 	*(*KVEventBufferHeader)(unsafe.Pointer(&data[0])) = *self
 	return KVEventBufferHeaderByteSz
@@ -72,18 +77,21 @@ func KVEventBufferHeaderFromFlat(self *KVEventBufferHeader, data []byte) (l uint
 }
 
 type KVEventBufferHolder struct {
-	Keb        KVEventBufferHeader
-	Keys       [][]byte
-	Values     [][]byte
-	OffsetData []byte
+	Keb            KVEventBufferHeader
+	Keys           [][]byte
+	Values         [][]byte
+	OffsetData     []byte
+	BufferBeginPad uint64
 }
 
 func KVEventBufferHolderFromEventBuffer(self *KVEventBufferHolder, evb KVEventBuffer) {
 	keb := &self.Keb
 	*keb = *evb.KVEventBufferHeader()
-	//log.Println("KVEventBufferHeader ValueOffs", keb.ValueOffs)
+
+	log.Println("KVEventBufferHeader ValueOffs", keb.ValueOffs, evb.KVEventBufferHeader())
 	ptr := uintptr(unsafe.Pointer(&evb[0]))
 	self.OffsetData = evb.OffsetData()
+	log.Println("offset data", len(self.OffsetData), GetArrayLenAt(evb, 0))
 	fpb := FixedPrefixSizeBuffer(evb[ArrayLenByteSz+len(self.OffsetData)+KVEventBufferHeaderByteSz : keb.ValueOffs])
 
 	if keb.FixedKeySize > 0 {
@@ -100,7 +108,11 @@ func KVEventBufferHolderFromEventBuffer(self *KVEventBufferHolder, evb KVEventBu
 
 }
 
-// bufferBeginPad is the space which should be left before the KVEventBufferStarts
+func KVEventBufferHolderToEventBufferDirect(self *KVEventBufferHolder) []byte {
+	return KVEventBufferHolderToEventBuffer(self, self.BufferBeginPad)
+}
+
+// KVEventBufferHolderToEventBuffer creates a new byte slice from KVEventBufferHolder with the KVEventBuffer starting at bufferBeginPad.
 func KVEventBufferHolderToEventBuffer(self *KVEventBufferHolder, bufferBeginPad uint64) []byte {
 	evbBuf := KVEventBufferHolderToEventBufferOffsetOnly(self, uint64(len(self.OffsetData)), bufferBeginPad)
 	evb := KVEventBuffer(evbBuf[bufferBeginPad:])
@@ -108,15 +120,19 @@ func KVEventBufferHolderToEventBuffer(self *KVEventBufferHolder, bufferBeginPad 
 	return evbBuf
 }
 
-// bufferBeginPad is the space which should be left before the KVEventBufferStarts
-func KVEventBufferHolderToEventBufferOffsetOnly(self *KVEventBufferHolder, offs uint64, bufferBeginPad uint64) []byte {
+// KVEventBufferHolderToEventBufferOffsetOnly creates a new byte slice with the KVEventBuffer starting at bufferBeginPad.
+func KVEventBufferHolderToEventBufferOffsetOnly(self *KVEventBufferHolder, offsetDataLen uint64, bufferBeginPad uint64) []byte {
 	var l, vl uint64
 	fixedKeySize := self.Keb.FixedKeySize
+	if fixedKeySize == 0 {
+		log.Panicln("fixedKeySize == 0")
+	}
 	keys := self.Keys
 	values := self.Values
 	offsetData := self.OffsetData
+	log.Println("offset data self", self.OffsetData, bufferBeginPad, fixedKeySize)
 
-	offs += ArrayLenByteSz
+	offsetDataLen += ArrayLenByteSz
 
 	l = uint64(len(offsetData))
 	l += uint64(fixedKeySize) * uint64(len(keys))
@@ -134,17 +150,19 @@ func KVEventBufferHolderToEventBufferOffsetOnly(self *KVEventBufferHolder, offs 
 
 	ebh := evb.KVEventBufferHeader()
 	ebh.FixedKeySize = fixedKeySize
-	ebh.ValueOffs = offs + KVEventBufferHeaderByteSz +
+	ebh.ValueOffs = offsetDataLen + KVEventBufferHeaderByteSz +
 		ArrayLenByteSz + uint64(fixedKeySize)*uint64(len(keys))
+
+	log.Println("offset")
 
 	if len(keys) == 0 {
 		return evbBuf
 	}
 
-	fpb := FixedPrefixSizeBuffer(UintptrToByteSlice(uintptr(unsafe.Pointer(&evb[offs+KVEventBufferHeaderByteSz])), uint64(fixedKeySize)*uint64(len(keys))+ArrayLenByteSz))
+	fpb := FixedPrefixSizeBuffer(UintptrToSlice(uintptr(unsafe.Pointer(&evb[offsetDataLen+KVEventBufferHeaderByteSz])), uint64(fixedKeySize)*uint64(len(keys))+ArrayLenByteSz))
 	fpb.SetDatas(keys)
 
-	apb := ArrayLenPrefixedBuffer(UintptrToByteSlice(uintptr(unsafe.Pointer(&evb[ebh.ValueOffs])), vl))
+	apb := ArrayLenPrefixedBuffer(UintptrToSlice(uintptr(unsafe.Pointer(&evb[ebh.ValueOffs])), vl))
 	apb.SetDatas(values)
 
 	return evbBuf

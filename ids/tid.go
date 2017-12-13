@@ -29,19 +29,19 @@ const (
 )
 
 func TidPrintln(tid uint64) {
-	log.Println("tid ", " tim ", TidTim(tid), " seq ", TidSeq(tid))
+	log.Println("tid ", " tim ", TidTime(tid), " seq ", TidSeq(tid))
 }
 
 func TidStr(tid uint64) string {
-	return fmt.Sprint("tid", tid, " tim ", TidTim(tid), " seq ", TidSeq(tid), " topic seq ", TidTopicSeq(tid), time.Unix(int64(TidTim(tid)/1000000), 0).UTC())
+	return fmt.Sprint("tid", tid, " tim ", TidTime(tid), " seq ", TidSeq(tid), " topic seq ", TidTopicSeq(tid), time.Unix(int64(TidTime(tid)/1000000), 0).UTC())
 }
 
-func TidTim(pp uint64) uint64 {
+func TidTime(pp uint64) uint64 {
 	return ((pp & tid_time_mask) >> tid_time_shift) + tid_custom_tim_beg
 }
 
 func TidNext(tim, tidLast, seqTopic uint64) (tid uint64) {
-	timLast := TidTim(tidLast)
+	timLast := TidTime(tidLast)
 	seqLast := TidSeq(tidLast)
 L:
 	if tim > timLast {
@@ -55,7 +55,7 @@ L:
 		}
 	}
 
-	TidSetTim(&tid, tim)
+	TidSetTime(&tid, tim)
 	TidSetSeq(&tid, seqLast)
 	TidSetTopicSeq(&tid, seqTopic+1)
 
@@ -86,7 +86,7 @@ func TidSeqIsNextOK(ppLast, ppNow uint64) bool {
 	return false
 }
 
-func TidSetTim(tid *uint64, val uint64) {
+func TidSetTime(tid *uint64, val uint64) {
 	val -= tid_custom_tim_beg
 	pp := uint64(*tid)
 	pp = pp & ^tid_time_mask
@@ -112,9 +112,9 @@ func TidSetTopicSeq(tid *uint64, val uint64) {
 	*tid = (pp | val)
 }
 
-func TidAddTim(tid *uint64, val uint64) {
+func TidAddTime(tid *uint64, val uint64) {
 	ppcur := *tid
-	TidSetTim(&ppcur, TidTim(ppcur)+val)
+	TidSetTime(&ppcur, TidTime(ppcur)+val)
 	*tid = ppcur
 }
 
@@ -126,16 +126,16 @@ func TidAtomicSet(tid *uint64, val uint64) {
 	atomic.StoreUint64(tid, val)
 }
 
-func TidAtomicSetTim(tid *uint64, val uint64) {
+func TidAtomicSetTime(tid *uint64, val uint64) {
 	val -= tid_custom_tim_beg
 	ppcur := *tid
-	TidSetTim(&ppcur, val)
+	TidSetTime(&ppcur, val)
 	atomic.StoreUint64(tid, ppcur)
 }
 
-func TidAtomicAddTim(tid *uint64, val uint64) {
+func TidAtomicAddTime(tid *uint64, val uint64) {
 	ppcur := *tid
-	TidSetTim(&ppcur, TidTim(ppcur)+val)
+	TidSetTime(&ppcur, TidTime(ppcur)+val)
 	atomic.StoreUint64(tid, ppcur)
 }
 

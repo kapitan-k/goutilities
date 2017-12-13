@@ -5,10 +5,10 @@ import (
 	"unsafe"
 )
 
-// this buffer has 4 bytes (uint32t) at the first bytes which define the count
+// FixedPrefixSizeBuffer has 4 bytes (uint32) at the first bytes which define the count
 // of its elements.
 // afterwards elements must follow in |value|value
-// each with the same len
+// each with the same len.
 type FixedPrefixSizeBuffer []byte
 
 func FixedPrefixSizeBufferCreate(elemSz, cnt uint64) FixedPrefixSizeBuffer {
@@ -45,7 +45,7 @@ func (self FixedPrefixSizeBuffer) SetDatas(datas [][]byte) {
 	ptr += ArrayLenByteSz
 	elemSz := self.ElemSize()
 	for _, data := range datas {
-		dst := UintptrToByteSlice(ptr, uint64(elemSz))
+		dst := UintptrToSlice(ptr, uint64(elemSz))
 		copy(dst, data)
 		ptr += uintptr(elemSz)
 	}
@@ -57,7 +57,7 @@ func (self FixedPrefixSizeBuffer) Iterate(fn func(data []byte) (more bool)) {
 	elemSz := self.ElemSize()
 	ptr += ArrayLenByteSz
 	for i := uint64(0); i < cnt; i++ {
-		more := fn(UintptrToByteSlice(ptr, elemSz))
+		more := fn(UintptrToSlice(ptr, elemSz))
 		if !more {
 			return
 		}
@@ -70,14 +70,14 @@ func (self FixedPrefixSizeBuffer) At(off uint64) (data []byte) {
 	ptr := uintptr(unsafe.Pointer(&self[0]))
 	elemSz := self.ElemSize()
 
-	return UintptrToByteSlice(ptr+ArrayLenByteSz+uintptr(off*elemSz), elemSz)
+	return UintptrToSlice(ptr+ArrayLenByteSz+uintptr(off*elemSz), elemSz)
 }
 
 // no bounds check
 func (self FixedPrefixSizeBuffer) SetAt(data []byte, off uint64) {
 	ptr := uintptr(unsafe.Pointer(&self[0]))
 	elemSz := self.ElemSize()
-	dst := UintptrToByteSlice(ptr+ArrayLenByteSz+uintptr(off*elemSz), elemSz)
+	dst := UintptrToSlice(ptr+ArrayLenByteSz+uintptr(off*elemSz), elemSz)
 	copy(dst, data)
 }
 
@@ -89,10 +89,10 @@ func (self FixedPrefixSizeBuffer) Append(data []byte) FixedPrefixSizeBuffer {
 
 const ArrayLenPrefixedBufferBaseByteSz = 4
 
-// this buffer has 4 bytes (uint32) at the first bytes which define the count
+// ArrayLenPrefixedBuffer has 4 bytes (uint32) at the first bytes which define the count
 // of its elements.
 // afterwards elements must follow in valueLen|value|valueLen|value
-// valueLen is represented as uint32
+// valueLen is represented as uint32 (ArrayLen)
 type ArrayLenPrefixedBuffer []byte
 
 func ArrayLenPrefixedBufferCreate(minSize uint64) ArrayLenPrefixedBuffer {
@@ -126,7 +126,7 @@ func (self ArrayLenPrefixedBuffer) Iterate(fn func(data []byte) (more bool)) {
 	for i := uint64(0); i < cnt; i++ {
 		elemSz := uint64(GetArrayLenAtUintptr(ptr, 0))
 		ptr += ArrayLenByteSz
-		more := fn(UintptrToByteSlice(ptr, elemSz))
+		more := fn(UintptrToSlice(ptr, elemSz))
 		if !more {
 			return
 		}
@@ -163,7 +163,7 @@ func (self ArrayLenPrefixedBuffer) AppendMulti(datas [][]byte) ArrayLenPrefixedB
 		l := uint64(len(data))
 		SetArrayLenAtUintptr(ptr, 0, uint32(l))
 		ptr += ArrayLenByteSz
-		dst := UintptrToByteSlice(ptr, l)
+		dst := UintptrToSlice(ptr, l)
 		copy(dst, data)
 		ptr += uintptr(l)
 	}
@@ -182,7 +182,7 @@ func ArrayLenPrefixedDataToDatasByUintptr(ptr uintptr) (datas [][]byte, ptrEnd u
 	for i := uint64(0); i < cnt; i++ {
 		elemSz := uint64(GetArrayLenAtUintptr(ptr, 0))
 		ptr += ArrayLenByteSz
-		datas[i] = UintptrToByteSlice(ptr, elemSz)
+		datas[i] = UintptrToSlice(ptr, elemSz)
 		ptr += uintptr(elemSz)
 	}
 
@@ -198,7 +198,7 @@ func ArrayLenPrefixedDataFromDatasByUintptr(ptr uintptr, datas [][]byte) (ptrEnd
 		l := uint64(len(data))
 		SetArrayLenAtUintptr(ptr, 0, uint32(l))
 		ptr += ArrayLenByteSz
-		dst := UintptrToByteSlice(ptr, l)
+		dst := UintptrToSlice(ptr, l)
 		copy(dst, data)
 		ptr += uintptr(l)
 	}
@@ -212,7 +212,7 @@ func FixedSizeDataToDatasByUintptr(ptr uintptr, sz uint64) (datas [][]byte, ptrE
 	ptr += ArrayLenByteSz
 	datas = make([][]byte, cnt)
 	for i := uint32(0); i < cnt; i++ {
-		datas[i] = UintptrToByteSlice(ptr, sz)
+		datas[i] = UintptrToSlice(ptr, sz)
 		ptr += uintptr(sz)
 	}
 

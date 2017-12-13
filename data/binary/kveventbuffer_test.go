@@ -1,6 +1,7 @@
 package binary
 
 import (
+	. "github.com/kapitan-k/goutilities/test"
 	"github.com/stretchr/testify/require"
 	"math/rand"
 	"testing"

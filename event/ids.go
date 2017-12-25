@@ -39,23 +39,53 @@ func EventIDsToFixedKeys(eventIDs []EventID) (keys [][]byte) {
 
 const TopicEventEventKeyByteSz = 16
 
+// TopicEventEventKey defines a 16 byte unique event identification.
+// first 8 byte is TopicID, second 8 byte is EventID
 type TopicEventEventKey struct {
 	TopicID TopicID
 	EventID EventID
 }
 
+// AsSlice returns the TopicEventEventKey as a byte slice
+// but unsafe!
 func (self *TopicEventEventKey) AsSlice() (data []byte) {
 	return UnsafeToSlice(unsafe.Pointer(self), TopicEventEventKeyByteSz)
 }
 
+// Slice returns the TopicEventEventKey as a freshly allocated byte slice.
 func (self *TopicEventEventKey) Slice() (data []byte) {
 	return CopyBuf(UnsafeToSlice(unsafe.Pointer(self), TopicEventEventKeyByteSz))
 }
 
+// FromSlice copies the data from data to TopicEventEventKey.
 func (self *TopicEventEventKey) FromSlice(data []byte) {
 	*self = *(*TopicEventEventKey)(unsafe.Pointer(&data[0]))
 }
 
+// Size implements the marshaler interface.
+func (self *TopicEventEventKey) Size() int {
+	return TopicEventEventKeyByteSz
+}
+
+// Marshal implements the marshaler interface.
+func (self *TopicEventEventKey) Marshal() (data []byte, err error) {
+	return self.Slice(), nil
+}
+
+// MarshalTo implements the marshaler interface.
+func (self *TopicEventEventKey) MarshalTo(data []byte) (err error) {
+	copy(data, self.AsSlice())
+	return
+}
+
+// Unmarshal implements the unmarshaler interface.
+func (self *TopicEventEventKey) Unmarshal(data []byte) (err error) {
+	self.FromSlice(data)
+	return
+}
+
+// TopicEventEventKeyMax return a TopicEventEventKey
+// for topicID with a maximum EventID.
 func TopicEventEventKeyMax(topicID TopicID) (self TopicEventEventKey) {
 	self.TopicID = topicID
 	self.EventID = EventIDMax

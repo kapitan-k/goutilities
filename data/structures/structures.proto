@@ -1,0 +1,13 @@
+
+syntax = "proto3";
+
+package topicrelation;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto"; 
+
+
+
+message TwoDimUint64Slice {
+	repeated uint64 values 					= 1;
+	uint64 sliceCount 						= 2;
+}

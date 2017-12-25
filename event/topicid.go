@@ -6,6 +6,7 @@ import (
 	"math"
 	"sync/atomic"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -108,4 +109,9 @@ func (self *TopicID) AtomicNext() (cur, next TopicID) {
 		}
 		time.Sleep(time.Nanosecond * 64)
 	}
+}
+
+// FromSlice copies the data from data to TopicID.
+func (self *TopicID) FromSlice(data []byte) {
+	*self = *(*TopicID)(unsafe.Pointer(&data[0]))
 }

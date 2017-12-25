@@ -5,6 +5,7 @@ import (
 	"math"
 	"sync/atomic"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -113,4 +114,9 @@ func (self *EventID) AtomicSetSeq(val uint64) {
 	teid := EventID(*self)
 	teid.SetSeq(val)
 	atomic.StoreUint64((*uint64)(self), uint64(teid))
+}
+
+// FromSlice copies the data from data to EventID.
+func (self *EventID) FromSlice(data []byte) {
+	*self = *(*EventID)(unsafe.Pointer(&data[0]))
 }

@@ -23,6 +23,11 @@ type MarshalSerializer interface {
 	Unmarshaler
 }
 
+// MarshalSerializerCreator can create MarshalSerializer.
+type MarshalSerializerCreator interface {
+	GetNew() MarshalSerializer
+}
+
 // ZeroMarshalSerializer s methods do nothing.
 type ZeroMarshalSerializer struct{}
 

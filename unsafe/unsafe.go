@@ -116,3 +116,23 @@ func ByteSliceToInt64Slice(vals []byte) []int64 {
 		Cap:  cap(vals) / 8,
 	}))
 }
+
+// Uint32SliceToByteSlice converts a uint32 slice to a byte slice unsafe.
+// Length of vals is multiplied by 4.
+func Uint32SliceToByteSlice(vals []uint32) []byte {
+	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(&vals[0])),
+		Len:  len(vals) * 4,
+		Cap:  cap(vals) * 4,
+	}))
+}
+
+// ByteSliceToUint32Slice converts a byte slice to a uint32 slice unsafe.
+// Length of vals is divided by 4.
+func ByteSliceToUint32Slice(vals []byte) []uint32 {
+	return *(*[]uint32)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(&vals[0])),
+		Len:  len(vals) / 4,
+		Cap:  cap(vals) / 4,
+	}))
+}
